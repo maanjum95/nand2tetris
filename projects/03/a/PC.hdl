@@ -17,4 +17,23 @@ CHIP PC {
 
     PARTS:
     // Put your code here:
+	Not(in=load, out=notload);
+	
+	// The logic for the mux is as follows
+	// 0 | 0 | Nothing   | a
+	// 0 | 1 | Increment | b
+	// 1 | 0 | Load      | c
+	// 1 | 1 | Reset     | d
+	Or(a=reset, b=load, out=toload);
+	
+	And(a=notload, b=inc, out=w1);
+	Or(a=reset, b=w1, out=toinc);
+	
+	Or(a=toload, b=toinc, out=enableload);
+	
+	Inc16(in=regout, out=regoutincr);
+	
+	Mux4Way16(a=regout, b=regoutincr, c=in, d=false, sel[1]=toload, sel[0]=toinc, out=muxout);
+	
+	Register(in=muxout, load=enableload, out=out, out=regout);
 }
