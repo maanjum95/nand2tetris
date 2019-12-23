@@ -40,4 +40,49 @@ CHIP CPU {
 
     PARTS:
     // Put your code here:
+	Not(in=instruction[15], out=ainstrc);
+	
+	// A register load and in logic
+	Or(a=ainstrc, b=instruction[5], out=aload);
+	Mux16(a=instruction, b=aluout, sel=instruction[15], out=ain);
+	ARegister(in=ain, load=aload, out=aregout, out[0..14]=addressM);
+	
+	// D register load and in logic
+	And(a=instruction[15], b=instruction[4], out=dload);
+	DRegister(in=aluout, load=dload, out=dregout);
+	
+	// M load logic
+	And(a=instruction[15], b=instruction[3], out=writeM);
+	 
+	// A pointer out
+	Mux16(a=aregout, b=inM, sel=instruction[12], out=apoint);
+	
+	ALU(x=dregout, y=apoint, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=aluout, out=outM, zr=aluzr, ng=alung); 
+	
+	// Program Counter Logic
+	
+	// logic for Program Counter
+	// zr.j2 + ng.j1 + notng.j3.notzr
+	Not(in=aluzr, out=notaluzr);
+	Not(in=alung, out=notalung);
+	
+	And(a=aluzr, b=instruction[1], out=pcw1);
+	
+	And(a=alung, b=instruction[2], out=pcw2);
+	
+	And(a=notalung, b=instruction[0], out=pcw3);
+	And(a=pcw3, b=notaluzr, out=pcw4);
+	
+	Or(a=pcw1, b=pcw2, out=pcw5);
+	Or(a=pcw5, b=pcw4, out=pcw6);
+	
+	And(a=instruction[15], b=pcw6, out=pcload);
+	
+	PC(in=aregout, load=pcload, inc=true, reset=reset, out[0..14]=pc);
 }
+
+
+
+
+
+
